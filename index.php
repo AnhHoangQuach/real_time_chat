@@ -10,24 +10,48 @@
 </head>
 <body>
     <div id="wrapper">
-    <h1>Welcome to my website</h1>
+    <h1>Welcome <?php session_start(); echo $_SESSION['username']; ?> to my website</h1>
         <div class="chat_wrapper">
             <div id="chat"></div>
-            <form action="POST">
+            <form action="POST" id="messageForm">
                 <textarea name="message" id="" cols="30" rows="5" class="textarea"></textarea>
             </form>
         </div>
     </div>
     <script>
+        setInterval(() => {
+            LoadChat();
+        }, 1000);
+        function LoadChat() {
+            $.post('handlers/messages.php?action=getMessages', function(response) {
+                var scrollpos = $('#chat').scrollTop();
+                var scrollpos = parseInt(scrollpos) + 520;
+                var scrollHeight = $('#chat').prop('scrollHeight');
+                $('#chat').html(response);
+
+                if(scrollpos < scrollHeight) {
+            
+                } else {
+                    $('#chat').scrollTop($('#chat').prop('scrollHeight'));
+                }
+            });
+        }
         $('.textarea').keyup(function(e) {
-            if(e.which == 13 || e.keyCode == 13) {
+            var code = e.keyCode || e.which;
+            if(code == 13) {
                 $('form').submit();
             }
         });
-        $('form').submit(function()) {
-            alert('form is submmitted using jquery');
+        $('form').submit(function() {
+            var message = $('.textarea').val();
+            $.post('handlers/messages.php?action=sendMessage&message=' + message, function(response) {
+                if(response == 1) {
+                    LoadChat();
+                    document.getElementById('messageForm').reset();
+                }
+            });
             return false;
-        }
+        });
     </script>
 </body>
 </html>
